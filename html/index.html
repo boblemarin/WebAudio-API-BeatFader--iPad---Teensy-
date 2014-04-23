@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="HandheldFriendly" content="True">
+		
+		<title>WebAudio BeatFader</title>
+
+		<!--
+		viewport:
+		<meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+		webapp:
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<link rel="apple-touch-icon-precomposed" href="icon.png">
+		favicon:
+		<link rel="icon" href="img/favicon.ico">
+		<link rel="icon" type="image/png" href="img/favicon.png">
+		-->
+
+		<style type="text/css">
+
+		html, body {
+			height: 100%;
+		}
+		* { -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box; }
+
+		body {
+			overflow: hidden;
+			background: black;
+			text-align: center;
+			color: white;
+			font-family: Helvetica;
+		}
+
+		textarea {
+			border: 1px dashed #777;
+			text-align: center;
+			font-size: 25px;
+			font-weight: bold;
+			color: white;
+			background: black;
+		}
+
+		#big {
+			text-align: left;
+			font-size: 50px;
+			font-weight: bold;
+			color: white;
+			background: black;
+		}
+
+		.note {
+			padding: 0;
+			margin: 4px;
+			display: inline-block;
+			width: 60px;
+			height: 60px;
+			border-radius: 50%;
+			background: green;
+			border: 1px solid black;
+			-webkit-transition: all .3s ease-in-out;
+		}
+
+		.note.note-on {
+			background: yellow;
+			-webkit-transition: all .001s ease-in-out;
+		}
+		
+
+		</style>
+
+	</head>
+	<body>
+
+<div id="pos"></div>
+<textarea id="area"></textarea>
+<p>
+	<div class="note"></div>
+	<div class="note"></div>
+	<div class="note"></div>
+	<div class="note"></div>
+	<div class="note"></div>
+	<div class="note"></div>
+	<div class="note"></div>
+	<div class="note"></div>
+</p>
+
+<div id="big">Sliding Potentiomer (aka Fader) <br>+ Teensy 2.0++<br>+ iPad <br>+ Javascript with WebAudio API<br>= LOVE</div>
+
+<script type="text/javascript" src="link/BufferLoader.js"></script>
+<script type="text/javascript">
+//(function(){
+
+window.AudioContext = window.AudioContext || window.webkitAudioContext || window.mozAudioContext || 0;
+		
+	
+
+area.value ="Loading samples";
+
+var context = new AudioContext(),
+	notes = document.getElementsByClassName("note"),
+	volumes = [1,0.1,0.1,0.1,0.1,0.1,0.1,1],
+	sounds,
+	lastChar = 0;
+	loader = new BufferLoader(context, [
+		"samples/kick.wav",
+		"samples/LinnHat.wav",
+		"samples/LinnShaker.wav",
+		"samples/achh.aif",
+		"samples/snare.aif",
+		"samples/LinnHat.wav",
+		"samples/LinnHat.wav",
+		"samples/asnare.aif"
+		], function(buffers){
+			sounds = buffers;
+			init();
+	} );
+
+loader.load();
+
+function init() {
+	//document.addEventListener("keypress",onKeyDown,true);
+	
+
+	//document.onkeypress = onKeyDown;
+	area.addEventListener("touchstart",onTouchStart,true);
+	area.value ="Please tap here...";
+	area.focus();
+}
+
+function onTouchStart(e) {
+	playSound( sounds[0], 0);
+	//e.preventDefault();
+	area.value ="Thanks. Now play !";
+
+	document.onkeydown = onKeyDown;
+}
+
+function onKeyDown(e) {
+	//pos.innerHTML ="keydown";
+	var c = e.keyCode-66;
+	if ( c != lastChar ){
+		//console.log(e.keyCode + " || " + e.keyIdentifier);
+		playSound( sounds[c], 0, volumes);
+		notes[lastChar].classList.remove("note-on");
+		lastChar = c;
+		notes[lastChar].classList.add("note-on");
+	}
+	e.preventDefault();
+	
+}
+
+function playSound(buffer, time, vol) {
+  		var source = context.createBufferSource();
+		source.buffer = buffer;
+		source.gain.value = vol;
+		source.connect(context.destination);
+		source.noteOn(time);
+		return source;
+}
+
+//})()
+
+</script>
+
+	</body>
+</html>
